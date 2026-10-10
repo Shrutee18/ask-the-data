@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.DS_Store
+.env
+gold_output.txt
+results/invalid/
+logs_*.txt
+failures_*.txt
+gold_output*.txt
+.vscode/
