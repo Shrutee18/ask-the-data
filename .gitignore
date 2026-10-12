@@ -9,3 +9,7 @@ logs_*.txt
 failures_*.txt
 gold_output*.txt
 .vscode/
+
+.env.*
+*.save
+*~
