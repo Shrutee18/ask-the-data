@@ -7,16 +7,19 @@ from dotenv import load_dotenv
 from groq import Groq
 
 load_dotenv()
-client = Groq()  # reads GROQ_API_KEY from the environment
 
 DEFAULT_MODEL = os.getenv("GROQ_MODEL")
 
 
-def ask(model, system, question, max_tokens=3000):
+def ask(model, system, question, max_tokens=3000, api_key=None):
     """Send one question to Groq. Returns (text, input_tokens, output_tokens)."""
     model = (model or DEFAULT_MODEL or "").replace("groq:", "")
     if not model:
         raise ValueError("No model set. Add GROQ_MODEL to .env or pass --model.")
+    client = Groq(api_key=api_key) if api_key else Groq()
+    extra = {}
+    if os.environ.get("REASONING_EFFORT"):
+        extra["reasoning_effort"] = os.environ["REASONING_EFFORT"]
 
     for attempt in range(5):
         try:
@@ -29,6 +32,7 @@ def ask(model, system, question, max_tokens=3000):
                 temperature=0,
                 max_tokens=max_tokens,
                 response_format={"type": "json_object"},
+                **extra,
             )
             return (
                 resp.choices[0].message.content,
@@ -37,9 +41,7 @@ def ask(model, system, question, max_tokens=3000):
             )
         except Exception as e:
             if type(e).__name__ == "RateLimitError" and attempt < 4:
-                wait = 15 * (attempt + 1)
-                print(f"   rate limited, waiting {wait}s...")
-                time.sleep(wait)
+                time.sleep(15 * (attempt + 1))
                 continue
             raise
 
